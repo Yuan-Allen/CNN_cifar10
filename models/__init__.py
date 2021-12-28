@@ -1,1 +1,1 @@
-from .tutorial_net import *
+from .lenet import *

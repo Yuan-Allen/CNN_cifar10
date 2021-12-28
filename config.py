@@ -26,4 +26,4 @@ transform_test = transforms.Compose([
 ])
 
 # Choose a net here
-net = Tutorial_Net()
+net = LeNet()

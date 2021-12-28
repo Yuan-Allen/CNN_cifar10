@@ -1,12 +1,11 @@
-# This is the model in the official tutorial of pytorch
-# The accuracy is low
-# https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html
+# lenet-5
+# the accuracy is low
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
 
 
-class Tutorial_Net(nn.Module):
+class LeNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 6, 5)
