@@ -8,6 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 import ssl
 import random
+import os
 
 from models import *
 import config
@@ -30,6 +31,9 @@ setup_seed(2021)
 #######################################################################
 print("preparing data...")
 
+best_acc = 0
+start_epoch = 0
+
 # If running on Windows and you get a BrokenPipeError, try setting
 # the num_worker of torch.utils.data.DataLoader() to 0.
 trainset = torchvision.datasets.CIFAR10(
@@ -49,6 +53,16 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 print("defining a convolutional neural network...")
 net = config.net
 
+if config.resume:
+    # Load checkpoint.
+    print('Resuming from checkpoint...')
+    assert os.path.isdir(
+        config.persist_dir_name), 'Error: no checkpoint directory found!'
+    checkpoint = torch.load('./%s/%s_ckpt.pth' %
+                            (config.persist_dir_name, net.__class__.__name__))
+    net.load_state_dict(checkpoint['net'])
+    best_acc = checkpoint['acc']
+    start_epoch = checkpoint['epoch']+1
 #######################################################################
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(
@@ -87,6 +101,7 @@ def train(epoch):
 
 
 def test(epoch):
+    global best_acc
     correct = 0
     total = 0
     # since we're not training, we don't need to calculate the gradients for our outputs
@@ -100,12 +115,25 @@ def test(epoch):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+    acc = 100 * correct / total
     print('[Epoch %d] Accuracy of the network on the 10000 test images: %d %%' % (epoch+1,
-                                                                                  100 * correct / total))
+                                                                                  acc))
+    if config.save_flag and acc > best_acc:
+        print('Saving...')
+        state = {
+            'net': net.state_dict(),
+            'acc': acc,
+            'epoch': epoch,
+        }
+        if not os.path.isdir(config.persist_dir_name):
+            os.mkdir(config.persist_dir_name)
+        torch.save(state, './%s/%s_ckpt.pth' %
+                   (config.persist_dir_name, net.__class__.__name__))
+        best_acc = acc
 
 
 print("train and test...")
-for epoch in range(0, config.end_epoch):
+for epoch in range(start_epoch, start_epoch + config.epoch_num):
     train(epoch)
     test(epoch)
     scheduler.step()
@@ -114,9 +142,10 @@ for epoch in range(0, config.end_epoch):
 print("showing statistics...")
 x = range(0, len(losses))
 plt.plot(x, losses)
-plt.title("batch size: %d, learning rate:%f" %
-          (config.train_batch_size, config.learning_rate))
+plt.title("batch size: %d, learning rate:%f, epoch: %d to %d" %
+          (config.train_batch_size, config.learning_rate, start_epoch+1, start_epoch+config.epoch_num+1))
 plt.xlabel("per %d batches" % (config.train_show_interval))
 plt.ylabel("loss")
-plt.savefig("loss using %s" % (net.__class__.__name__))
+plt.savefig("%sloss_%s_epoch%dto%d" % (config.img_path,
+            net.__class__.__name__, start_epoch+1, start_epoch+config.epoch_num+1))
 plt.show()
