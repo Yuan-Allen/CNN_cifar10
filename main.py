@@ -56,6 +56,8 @@ optimizer = optim.SGD(
 # https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.CosineAnnealingLR.html
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
+losses = []
+
 
 def train(epoch):
     print('\nEpoch: %d' % (epoch+1))
@@ -80,6 +82,7 @@ def train(epoch):
         if i % config.train_show_interval == config.train_show_interval-1:
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / config.train_show_interval))
+            losses.append(running_loss / config.train_show_interval)
             running_loss = 0.0
 
 
@@ -106,3 +109,14 @@ for epoch in range(0, config.end_epoch):
     train(epoch)
     test(epoch)
     scheduler.step()
+
+#######################################################################
+print("showing statistics...")
+x = range(0, len(losses))
+plt.plot(x, losses)
+plt.title("batch size: %d, learning rate:%f" %
+          (config.train_batch_size, config.learning_rate))
+plt.xlabel("per %d batches" % (config.train_show_interval))
+plt.ylabel("loss")
+plt.savefig("loss using %s" % (net.__class__.__name__))
+plt.show()
