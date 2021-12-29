@@ -143,9 +143,9 @@ print("showing statistics...")
 x = range(0, len(losses))
 plt.plot(x, losses)
 plt.title("batch size: %d, learning rate:%f, epoch: %d to %d" %
-          (config.train_batch_size, config.learning_rate, start_epoch+1, start_epoch+config.epoch_num+1))
+          (config.train_batch_size, config.learning_rate, start_epoch+1, start_epoch+config.epoch_num))
 plt.xlabel("per %d batches" % (config.train_show_interval))
 plt.ylabel("loss")
 plt.savefig("%sloss_%s_epoch%dto%d" % (config.img_path,
-            net.__class__.__name__, start_epoch+1, start_epoch+config.epoch_num+1))
+            net.__class__.__name__, start_epoch+1, start_epoch+config.epoch_num))
 plt.show()
