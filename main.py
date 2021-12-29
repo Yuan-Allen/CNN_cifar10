@@ -16,6 +16,7 @@ import config
 
 ssl._create_default_https_context = ssl._create_unverified_context
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("device: %s" % (device))
 
 
 def setup_seed(seed):
@@ -53,7 +54,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 #######################################################################
 print("defining a convolutional neural network...")
 net = config.net
-
+net.to(device)
 if config.resume:
     # Load checkpoint.
     print('Resuming from checkpoint...')
@@ -80,8 +81,8 @@ def train(epoch):
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = data
-
+        #inputs, labels = data
+        inputs, labels = data[0].to(device), data[1].to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -108,7 +109,8 @@ def test(epoch):
     # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in testloader:
-            images, labels = data
+            #images, labels = data
+            images, labels = data[0].to(device), data[1].to(device)
             # calculate outputs by running images through the network
             outputs = net(images)
             # the class with the highest energy is what we choose as prediction
