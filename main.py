@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 import ssl
 import random
 import os
+import time
 
 from models import *
 import config
@@ -133,10 +134,15 @@ def test(epoch):
 
 
 print("train and test...")
+start_time = time.time()
 for epoch in range(start_epoch, start_epoch + config.epoch_num):
     train(epoch)
     test(epoch)
     scheduler.step()
+end_time = time.time()
+total_time = end_time - start_time
+print("total time of %d epoches: %fs\naverage per epoch: %fs" %
+      (config.epoch_num, total_time, total_time/config.epoch_num))
 
 #######################################################################
 print("showing statistics...")
