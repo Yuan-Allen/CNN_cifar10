@@ -73,12 +73,15 @@ optimizer = optim.SGD(
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
 losses = []
+losses_epoch = []
+accuracy_epoch = []
 
 
 def train(epoch):
     print('\nEpoch: %d' % (epoch+1))
     net.train()
     running_loss = 0.0
+    running_loss_total = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         #inputs, labels = data
@@ -94,12 +97,14 @@ def train(epoch):
 
         # print statistics
         running_loss += loss.item()
+        running_loss_total += loss.item()
         # print every train_show_interval mini-batches
         if i % config.train_show_interval == config.train_show_interval-1:
             print('[%d, %5d] loss: %.3f' %
                   (epoch + 1, i + 1, running_loss / config.train_show_interval))
             losses.append(running_loss / config.train_show_interval)
             running_loss = 0.0
+    losses_epoch.append(running_loss_total/len(trainloader))
 
 
 def test(epoch):
@@ -121,6 +126,7 @@ def test(epoch):
     acc = 100 * correct / total
     print('[Epoch %d] Accuracy of the network on the 10000 test images: %d %%' % (epoch+1,
                                                                                   acc))
+    accuracy_epoch.append(acc)
     if config.save_flag and acc > best_acc:
         print('Saving...')
         state = {
@@ -148,14 +154,35 @@ print("total time of %d epoches: %fs\naverage per epoch: %fs" %
 
 #######################################################################
 print("showing statistics...")
+if not os.path.isdir(config.img_path):
+    os.mkdir(config.img_path)
+
 x = range(0, len(losses))
 plt.plot(x, losses)
 plt.title("batch size: %d, learning rate:%f, epoch: %d to %d" %
           (config.train_batch_size, config.learning_rate, start_epoch+1, start_epoch+config.epoch_num))
 plt.xlabel("per %d batches" % (config.train_show_interval))
 plt.ylabel("loss")
-if not os.path.isdir(config.img_path):
-    os.mkdir(config.img_path)
 plt.savefig("%sloss_%s_epoch%dto%d" % (config.img_path,
             net.__class__.__name__, start_epoch+1, start_epoch+config.epoch_num))
+plt.show()
+
+x = range(start_epoch+1, len(losses_epoch)+1)
+plt.plot(x, losses_epoch)
+plt.title("batch size: %d, learning rate:%f loss of train set" %
+          (config.train_batch_size, config.learning_rate))
+plt.xlabel("epoch")
+plt.ylabel("loss")
+plt.savefig("%sloss_%s" % (config.img_path,
+            net.__class__.__name__))
+plt.show()
+
+x = range(start_epoch+1, len(accuracy_epoch)+1)
+plt.plot(x, accuracy_epoch)
+plt.title("batch size: %d, learning rate:%f acc of test set" %
+          (config.test_batch_size, config.learning_rate))
+plt.xlabel("epoch")
+plt.ylabel("accuracy/%")
+plt.savefig("%sacc_%s" % (config.img_path,
+            net.__class__.__name__))
 plt.show()
