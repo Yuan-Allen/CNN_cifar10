@@ -38,5 +38,6 @@ img_path = "./img/"
 
 ####################################################
 # Choose a net here
-net = LeNet()
-#net = VGG('VGG16')
+#net = LeNet()
+net = VGG('VGG13')
+#net = SimpLeNet()
